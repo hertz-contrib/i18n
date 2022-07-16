@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 	"path/filepath"
@@ -14,6 +15,7 @@ var _ HertzI18n = (*hertzI18nImpl)(nil)
 
 type hertzI18nImpl struct {
 	bundle          *i18n.Bundle
+	standardCtx     context.Context
 	currentCtx      *app.RequestContext
 	localizerByLang map[string]*i18n.Localizer
 	defaultLang     language.Tag
@@ -25,11 +27,13 @@ func (h *hertzI18nImpl) getMessage(param interface{}) (string, error) {
 	localizer := h.getLocalizerByLang(lang)
 	localizeConfig, err := h.getLocalizeCfg(param)
 	if err != nil {
+		hlog.CtxErrorf(h.standardCtx, "get localize config fail, err: %v", err.Error())
 		return "", err
 	}
 
 	message, err := localizer.Localize(localizeConfig)
 	if err != nil {
+		hlog.CtxErrorf(h.standardCtx, "localize fail, err: %v", err.Error())
 		return "", err
 	}
 
@@ -43,6 +47,7 @@ func (h *hertzI18nImpl) mustGetMessage(param interface{}) string {
 
 func (h *hertzI18nImpl) setCurrentContext(c context.Context, ctx *app.RequestContext) {
 	h.currentCtx = ctx
+	h.standardCtx = c
 }
 
 func (h *hertzI18nImpl) setBundle(cfg *BundleCfg) {

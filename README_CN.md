@@ -1,5 +1,11 @@
-# i18n
+# i18n (这是一个社区驱动的项目)
 [English](README.md) | 中文
+
+这是 Hertz 的一个中间件。
+
+它使用[go-i18n](github.com/nicksnyder/go-i18n)来提供一个i18n中间件。
+
+这个 repo 是从[i18n](https://github.com/gin-contrib/i18n) fork 出来的，并为 hertz 进行了适配。
 # 使用案例
 如何下载并安装它:
 ```bash
@@ -101,3 +107,7 @@ func main() {
 }
 ```
 
+
+## 许可证
+
+本项目采用Apache许可证。参见 [LICENSE](LICENSE) 文件中的完整许可证文本。

@@ -1,5 +1,12 @@
-# i18n
+# i18n (This is a community driven project)
 English | [中文](README_CN.md)
+
+This is a middleware for hertz.
+
+it uses [go-i18n](github.com/nicksnyder/go-i18n) to provide a i18n middleware. 
+
+This repo is forked from [i18n](https://github.com/gin-contrib/i18n) and adapted for hertz.
+
 # Usage 
 How to download and install it:
 ```bash
@@ -94,4 +101,6 @@ func main() {
 }
 ```
 
+## License
 
+This project is under Apache License. See the [LICENSE](LICENSE) file for the full license text.
