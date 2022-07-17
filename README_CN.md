@@ -3,9 +3,9 @@
 
 这是 Hertz 的一个中间件。
 
-它使用[go-i18n](github.com/nicksnyder/go-i18n)来提供一个i18n中间件。
+它使用 [go-i18n](github.com/nicksnyder/go-i18n) 来提供一个i18n中间件。
 
-这个 repo 是从[i18n](https://github.com/gin-contrib/i18n) fork 出来的，并为 hertz 进行了适配。
+这个 repo 是从 [i18n](https://github.com/gin-contrib/i18n) fork 出来的，并为 hertz 进行了适配。
 # 使用案例
 如何下载并安装它:
 ```bash
@@ -24,28 +24,21 @@ import (
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
+	hertzI18n "github.com/hertz-contrib/i18n"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
-	"golang.org/x/text/language"
-	"gopkg.in/yaml.v3"
-	hertzI18n "i18n"
 )
 
 func main() {
 	h := server.New(server.WithHostPorts(":3000"))
-    // add i18n middleware.
 	h.Use(hertzI18n.Localize())
-    
 	h.GET("/:name", func(c context.Context, ctx *app.RequestContext) {
 		ctx.String(200, hertzI18n.MustGetMessage(&i18n.LocalizeConfig{
-			// 选取模板中的定义项
 			MessageID: "welcomeWithName",
-			// 填入参数
 			TemplateData: map[string]string{
 				"name": ctx.Param("name"),
 			},
 		}))
 	})
-  
 	h.GET("/", func(c context.Context, ctx *app.RequestContext) {
 		ctx.String(200, hertzI18n.MustGetMessage("welcome"))
 	})
@@ -62,25 +55,21 @@ import (
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/app/server"
+	hertzI18n "github.com/hertz-contrib/i18n"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
-	hertzI18n "i18n"
 )
 
 func main() {
 	h := server.New(server.WithHostPorts(":3000"))
 	h.Use(hertzI18n.Localize(
 		hertzI18n.WithBundle(&hertzI18n.BundleCfg{
-            // i18n 配置文件夹的路径
+			// in example/main.go
 			RootPath:         "./localize",
-			// 支持的语言
 			AcceptLanguage:   []language.Tag{language.Chinese, language.English},
-			// 默认语言
 			DefaultLanguage:  language.Chinese,
-			// 文件类型
 			FormatBundleFile: "yaml",
-			// 序列化函数
 			UnmarshalFunc:    yaml.Unmarshal,
 		}),
 		hertzI18n.WithGetLangHandle(func(c context.Context, ctx *app.RequestContext, defaultLang string) string {
