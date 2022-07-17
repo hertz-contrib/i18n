@@ -1,0 +1,4 @@
+{
+  "welcome": "welcome",
+  "welcomeWithName": "welcome {{ .name }}"
+}
