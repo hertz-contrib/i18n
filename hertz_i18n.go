@@ -87,7 +87,7 @@ func (h *hertzI18nImpl) setBundle(cfg *BundleCfg) {
 	h.setLocalizerByLang(cfg.AcceptLanguage)
 }
 
-func (h hertzI18nImpl) setGetLangHandler(handler GetLangHandler) {
+func (h *hertzI18nImpl) setGetLangHandler(handler GetLangHandler) {
 	h.getLangHandler = handler
 }
 
