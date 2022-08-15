@@ -35,7 +35,7 @@ import (
 // constants for default config
 const (
 	defaultFormatBundleFile = "yaml"
-	defaultRootPath         = "./localize"
+	defaultRootPath         = "./example/localize"
 )
 
 var (
