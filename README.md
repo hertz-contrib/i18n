@@ -3,7 +3,7 @@ English | [中文](README_CN.md)
 
 This is a middleware for hertz.
 
-it uses [go-i18n](github.com/nicksnyder/go-i18n) to provide a i18n middleware. 
+it uses [go-i18n](https://github.com/nicksnyder/go-i18n) to provide a i18n middleware. 
 
 This repo is forked from [i18n](https://github.com/gin-contrib/i18n) and adapted for hertz.
 
