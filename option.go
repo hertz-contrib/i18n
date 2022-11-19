@@ -26,43 +26,107 @@
 package i18n
 
 import (
+	"context"
+	"io/ioutil"
+
+	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
+	"gopkg.in/yaml.v3"
 )
 
-type (
-	BundleCfg struct {
-		DefaultLanguage  language.Tag
-		FormatBundleFile string
-		AcceptLanguage   []language.Tag
-		// RootPath is from the root directory.
-		RootPath      string
-		UnmarshalFunc i18n.UnmarshalFunc
-		Loader        Loader
-	}
-	Loader interface {
-		LoadMessage(path string) ([]byte, error)
-	}
+type options struct {
+	// rootPath is i18n template folder path
+	rootPath         string
+	acceptLanguage   []language.Tag
+	formatBundleFile string
+	defaultLanguage  language.Tag
+	loader           Loader
+	unmarshalFunc    i18n.UnmarshalFunc
+	getLangHandle    getLangHandler
+	ctx              *app.RequestContext
+	bundle           *i18n.Bundle
+	localizerMap     map[string]*i18n.Localizer
+}
 
-	LoaderFunc func(path string) ([]byte, error)
-)
+type BundleCfg struct {
+	DefaultLanguage  language.Tag
+	FormatBundleFile string
+	AcceptLanguage   []language.Tag
+	// RootPath is from the root directory.
+	RootPath      string
+	UnmarshalFunc i18n.UnmarshalFunc
+	Loader        Loader
+}
+
+type getLangHandler = func(_ context.Context, c *app.RequestContext, defaultLang string) string
+
+type Loader interface {
+	LoadMessage(path string) ([]byte, error)
+}
+
+type LoaderFunc func(path string) ([]byte, error)
 
 func (f LoaderFunc) LoadMessage(path string) ([]byte, error) {
 	return f(path)
 }
 
-// WithBundle config about
+type Option func(o *options)
+
+func newOptions(opts ...Option) *options {
+	cfg := &options{
+		rootPath:         "./example/localize",
+		acceptLanguage:   []language.Tag{language.Chinese, language.English},
+		formatBundleFile: "yaml",
+		defaultLanguage:  language.English,
+		loader:           LoaderFunc(ioutil.ReadFile),
+		unmarshalFunc:    yaml.Unmarshal,
+		getLangHandle: func(_ context.Context, c *app.RequestContext, defaultLang string) string {
+			if c == nil {
+				return defaultLang
+			}
+			lang := c.Request.Header.Get("Accept-Language")
+			if lang != "" {
+				return lang
+			}
+			lang = c.Query("lang")
+			if lang == "" {
+				return defaultLang
+			}
+			return lang
+		},
+	}
+	for _, opt := range opts {
+		opt(cfg)
+	}
+	return cfg
+}
+
 func WithBundle(cfg *BundleCfg) Option {
-	return func(g HertzI18n) {
-		if cfg.Loader == nil {
-			cfg.Loader = defaultLoader
+	return func(o *options) {
+		if cfg.DefaultLanguage != language.Und {
+			o.defaultLanguage = cfg.DefaultLanguage
 		}
-		g.setBundle(cfg)
+		if cfg.FormatBundleFile != "" {
+			o.formatBundleFile = cfg.FormatBundleFile
+		}
+		if cfg.AcceptLanguage != nil {
+			o.acceptLanguage = cfg.AcceptLanguage
+		}
+		if cfg.RootPath != "" {
+			o.rootPath = cfg.RootPath
+		}
+		if cfg.UnmarshalFunc != nil {
+			o.unmarshalFunc = cfg.UnmarshalFunc
+		}
+		if cfg.Loader != nil {
+			o.loader = cfg.Loader
+		}
 	}
 }
 
-func WithGetLangHandle(handler GetLangHandler) Option {
-	return func(g HertzI18n) {
-		g.setGetLangHandler(handler)
+func WithGetLangHandle(f getLangHandler) Option {
+	return func(o *options) {
+		o.getLangHandle = f
 	}
 }

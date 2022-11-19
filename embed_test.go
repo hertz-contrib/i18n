@@ -76,7 +76,7 @@ var (
 		DefaultLanguage:  language.English,
 		FormatBundleFile: "json",
 		AcceptLanguage:   []language.Tag{language.English, language.Chinese},
-		RootPath:         "./example/localizeJSON/",
+		RootPath:         "./example/localizeJSON",
 		UnmarshalFunc:    json.Unmarshal,
 		// After commenting this line, use defaultLoader
 		// it will be loaded from the file

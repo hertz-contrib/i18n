@@ -30,6 +30,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/cloudwego/hertz/pkg/app/server"
+
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/config"
 	"github.com/cloudwego/hertz/pkg/common/ut"
@@ -40,7 +42,7 @@ import (
 )
 
 func newServer() *route.Engine {
-	router := route.NewEngine(config.NewOptions([]config.Option{}))
+	router := route.NewEngine(config.NewOptions([]config.Option{server.WithDisablePreParseMultipartForm(true)}))
 	router.Use(Localize())
 	router.GET("/", func(c context.Context, ctx *app.RequestContext) {
 		ctx.String(200, MustGetMessage("welcome"))

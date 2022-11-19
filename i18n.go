@@ -27,33 +27,45 @@ package i18n
 
 import (
 	"context"
+	"path/filepath"
 
 	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/cloudwego/hertz/pkg/common/hlog"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
-var atI18n HertzI18n
-
-func newI18n(opts ...Option) {
-	ins := &hertzI18nImpl{}
-	for _, opt := range opts {
-		opt(ins)
-	}
-
-	if ins.bundle == nil {
-		ins.setBundle(defaultBundleCfg)
-	}
-
-	if ins.getLangHandler == nil {
-		ins.getLangHandler = defaultGetLangHandler
-	}
-
-	atI18n = ins
-}
+var appCfg *options
 
 func Localize(opts ...Option) app.HandlerFunc {
-	newI18n(opts...)
-	return func(c context.Context, ctx *app.RequestContext) {
-		atI18n.setCurrentContext(c, ctx)
+	appCfg = newOptions(opts...)
+	bundle := i18n.NewBundle(appCfg.defaultLanguage)
+	bundle.RegisterUnmarshalFunc(appCfg.formatBundleFile, appCfg.unmarshalFunc)
+	appCfg.bundle = bundle
+
+	for _, lang := range appCfg.acceptLanguage {
+		path := filepath.Join(appCfg.rootPath, lang.String()+"."+appCfg.formatBundleFile)
+		buf, err := appCfg.loader.LoadMessage(path)
+		if err != nil {
+			panic(err)
+		}
+		if _, err := appCfg.bundle.ParseMessageFileBytes(buf, path); err != nil {
+			panic(err)
+		}
+	}
+
+	return func(ctx context.Context, c *app.RequestContext) {
+		appCfg.ctx = c
+		appCfg.localizerMap = map[string]*i18n.Localizer{}
+		for _, lang := range appCfg.acceptLanguage {
+			s := lang.String()
+			appCfg.localizerMap[s] = i18n.NewLocalizer(appCfg.bundle, s)
+		}
+		defaultLanguage := appCfg.defaultLanguage.String()
+		if _, ok := appCfg.localizerMap[defaultLanguage]; !ok {
+			appCfg.localizerMap[defaultLanguage] = i18n.NewLocalizer(appCfg.bundle, defaultLanguage)
+		}
+
+		c.Next(ctx)
 	}
 }
 
@@ -68,8 +80,9 @@ func Localize(opts ...Option) app.HandlerFunc {
 			},
 	})
 */
-func GetMessage(param interface{}) (string, error) {
-	return atI18n.getMessage(param)
+func MustGetMessage(params interface{}) string {
+	message, _ := GetMessage(params)
+	return message
 }
 
 /*MustGetMessage get the i18n message without error handling
@@ -83,6 +96,24 @@ func GetMessage(param interface{}) (string, error) {
 			},
 	})
 */
-func MustGetMessage(param interface{}) string {
-	return atI18n.mustGetMessage(param)
+func GetMessage(params interface{}) (string, error) {
+	var localizer *i18n.Localizer
+	var localizeConfig *i18n.LocalizeConfig
+
+	lang := appCfg.getLangHandle(nil, appCfg.ctx, appCfg.defaultLanguage.String())
+	localizer = appCfg.localizerMap[lang]
+
+	switch paramValue := params.(type) {
+	case string:
+		localizeConfig = &i18n.LocalizeConfig{MessageID: paramValue}
+	case *i18n.LocalizeConfig:
+		localizeConfig = paramValue
+	}
+
+	message, err := localizer.Localize(localizeConfig)
+	if err != nil {
+		hlog.Errorf("i18n.Localize error: %v", err.Error())
+		return "", err
+	}
+	return message, nil
 }
