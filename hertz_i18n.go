@@ -1,6 +1,6 @@
-// The MIT License (MIT)
+// MIT License
 //
-// Copyright (c) 2016 Bo-Yi Wu
+// Copyright (c) 2019 Gin-Gonic
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"path/filepath"
+	"path"
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
@@ -114,8 +114,8 @@ func (h *hertzI18nImpl) getLocalizeCfg(param interface{}) (*i18n.LocalizeConfig,
 
 func (h *hertzI18nImpl) loadMessageFiles(cfg *BundleCfg) {
 	for _, lang := range cfg.AcceptLanguage {
-		path := filepath.Join(cfg.RootPath, lang.String()) + "." + cfg.FormatBundleFile
-		if err := h.loadMessageFile(cfg, path); err != nil {
+		template := path.Join(cfg.RootPath, lang.String()) + "." + cfg.FormatBundleFile
+		if err := h.loadMessageFile(cfg, template); err != nil {
 			panic(err)
 		}
 	}
