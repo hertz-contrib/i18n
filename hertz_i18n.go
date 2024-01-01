@@ -31,49 +31,45 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 )
 
-var _ HertzI18n = (*hertzI18nImpl)(nil)
-
 type hertzI18nImpl struct {
 	bundle          *i18n.Bundle
-	ctx             context.Context
-	hertzCtx        *app.RequestContext
 	localizerByLang map[string]*i18n.Localizer
 	defaultLang     language.Tag
 	getLangHandler  GetLangHandler
 }
 
-func (h *hertzI18nImpl) getMessage(param interface{}) (string, error) {
-	lang := h.getLangHandler(context.Background(), h.hertzCtx, h.defaultLang.String())
-	localizer := h.getLocalizerByLang(lang)
-	localizeConfig, err := h.getLocalizeCfg(param)
+type ctxStore struct {
+	Instance  *hertzI18nImpl
+	Localizer *i18n.Localizer
+}
+
+func ctxGetMessage(ctx context.Context, param interface{}) (string, error) {
+	value := ctx.Value(hertzI18nKey)
+	if value == nil {
+		return "", fmt.Errorf("i18n.Localize error: %v", "Config is nil")
+	}
+	h, ok := value.(*ctxStore)
+	if !ok {
+		return "", fmt.Errorf("i18n.Localize error: %v", "Config is not *Config type")
+	}
+	localizeConfig, err := h.Instance.getLocalizeCfg(param)
 	if err != nil {
-		hlog.CtxErrorf(h.ctx, "get localize config fail, err: %v", err.Error())
+		hlog.Errorf("get localize config fail, err: %v", err.Error())
 		return "", err
 	}
 
-	message, err := localizer.Localize(localizeConfig)
+	message, err := h.Localizer.Localize(localizeConfig)
 	if err != nil {
-		hlog.CtxErrorf(h.ctx, "localize fail, err: %v", err.Error())
+		hlog.Errorf("localize fail, err: %v", err.Error())
 		return "", err
 	}
 
 	return message, nil
-}
-
-func (h *hertzI18nImpl) mustGetMessage(param interface{}) string {
-	message, _ := h.getMessage(param)
-	return message
-}
-
-func (h *hertzI18nImpl) setCurrentContext(c context.Context, ctx *app.RequestContext) {
-	h.hertzCtx = ctx
-	h.ctx = c
 }
 
 func (h *hertzI18nImpl) setBundle(cfg *BundleCfg) {

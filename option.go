@@ -26,6 +26,9 @@
 package i18n
 
 import (
+	"context"
+
+	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 )
@@ -45,24 +48,27 @@ type (
 	}
 
 	LoaderFunc func(path string) ([]byte, error)
+
+	GetLangHandler func(c context.Context, ctx *app.RequestContext, defaultLang string) string
+	Option         func(impl *hertzI18nImpl)
 )
 
 func (f LoaderFunc) LoadMessage(path string) ([]byte, error) {
 	return f(path)
 }
 
-// WithBundle config about
+// WithBundle config about BundleCfg
 func WithBundle(cfg *BundleCfg) Option {
-	return func(g HertzI18n) {
+	return func(o *hertzI18nImpl) {
 		if cfg.Loader == nil {
 			cfg.Loader = defaultLoader
 		}
-		g.setBundle(cfg)
+		o.setBundle(cfg)
 	}
 }
 
 func WithGetLangHandle(handler GetLangHandler) Option {
-	return func(g HertzI18n) {
-		g.setGetLangHandler(handler)
+	return func(o *hertzI18nImpl) {
+		o.setGetLangHandler(handler)
 	}
 }

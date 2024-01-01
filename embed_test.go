@@ -45,10 +45,10 @@ func newEmbedServer(middleware ...app.HandlerFunc) *route.Engine {
 	router := route.NewEngine(config.NewOptions([]config.Option{}))
 	router.Use(middleware...)
 	router.GET("/", func(c context.Context, ctx *app.RequestContext) {
-		ctx.String(200, MustGetMessage("welcome"))
+		ctx.String(200, MustGetMessage(c, "welcome"))
 	})
 	router.GET("/:name", func(c context.Context, ctx *app.RequestContext) {
-		ctx.String(http.StatusOK, MustGetMessage(&i18n.LocalizeConfig{
+		ctx.String(http.StatusOK, MustGetMessage(c, &i18n.LocalizeConfig{
 			MessageID: "welcomeWithName",
 			TemplateData: map[string]string{
 				"name": ctx.Param("name"),

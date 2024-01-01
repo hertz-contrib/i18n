@@ -26,7 +26,10 @@
 package i18n
 
 import (
+	"context"
 	"io/ioutil"
+
+	"github.com/cloudwego/hertz/pkg/app"
 
 	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
@@ -36,6 +39,7 @@ import (
 const (
 	defaultFormatBundleFile = "yaml"
 	defaultRootPath         = "./example/localize"
+	hertzI18nKey            = "hertzI18n"
 )
 
 var (
@@ -55,3 +59,21 @@ var (
 		Loader:           defaultLoader,
 	}
 )
+
+func defaultGetLangHandler(_ context.Context, ctx *app.RequestContext, defaultLang string) string {
+	if ctx == nil {
+		return defaultLang
+	}
+
+	lang := ctx.Request.Header.Get("Accept-Language")
+	if lang != "" {
+		return lang
+	}
+
+	lang = ctx.Query("lang")
+	if lang == "" {
+		return defaultLang
+	}
+
+	return lang
+}
