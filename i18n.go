@@ -50,7 +50,7 @@ func Localize(opts ...Option) app.HandlerFunc {
 	instance := newI18nInstance(opts...)
 	return func(c context.Context, ctx *app.RequestContext) {
 		localizer := instance.getLocalizerByLang(
-			instance.getLangHandler(nil, ctx, instance.defaultLang.String()),
+			instance.getLangHandler(c, ctx, instance.defaultLang.String()),
 		)
 		store := &ctxStore{
 			Instance:  instance,
