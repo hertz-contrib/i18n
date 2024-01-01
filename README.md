@@ -33,7 +33,7 @@ func main() {
 	h := server.New(server.WithHostPorts(":3000"))
 	h.Use(hertzI18n.Localize())
 	h.GET("/:name", func(c context.Context, ctx *app.RequestContext) {
-		ctx.String(200, hertzI18n.MustGetMessage(&i18n.LocalizeConfig{
+		ctx.String(200, hertzI18n.MustGetMessage(c, &i18n.LocalizeConfig{
 			MessageID: "welcomeWithName",
 			TemplateData: map[string]string{
 				"name": ctx.Param("name"),
@@ -41,7 +41,7 @@ func main() {
 		}))
 	})
 	h.GET("/", func(c context.Context, ctx *app.RequestContext) {
-		ctx.String(200, hertzI18n.MustGetMessage("welcome"))
+		ctx.String(200, hertzI18n.MustGetMessage(c, "welcome"))
 	})
 	
 	h.Spin()
@@ -83,7 +83,7 @@ func main() {
 		}),
 	))
 	h.GET("/:name", func(c context.Context, ctx *app.RequestContext) {
-		ctx.String(200, hertzI18n.MustGetMessage(&i18n.LocalizeConfig{
+		ctx.String(200, hertzI18n.MustGetMessage(c, &i18n.LocalizeConfig{
 			MessageID: "welcomeWithName",
 			TemplateData: map[string]string{
 				"name": ctx.Param("name"),
@@ -91,7 +91,7 @@ func main() {
 		}))
 	})
 	h.GET("/", func(c context.Context, ctx *app.RequestContext) {
-		ctx.String(200, hertzI18n.MustGetMessage("welcome"))
+		ctx.String(200, hertzI18n.MustGetMessage(c, "welcome"))
 	})
 	
 	h.Spin()
